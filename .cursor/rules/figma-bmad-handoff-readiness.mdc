@@ -1,0 +1,31 @@
+# Figma BMAD Handoff Readiness
+
+Canonical reference: `docs/figma-bmad/handoff-readiness.md`
+
+## Purpose
+
+Use this rule as a narrow readiness gate for a bounded Figma scope before implementation starts.
+
+## Applies when
+
+- a screen, section, or short flow needs a `ready`, `partial`, or `blocked` decision
+- implementation risk depends on visible structure, states, naming, or consistency
+
+## Does not apply when
+
+- the task is still defining system rules
+- the screen still needs composition work
+- the task is code review or technical architecture
+
+## Workflow
+
+1. Confirm the reviewed scope.
+2. Inspect visible implementation signals and conflicting sources.
+3. Check state coverage and ambiguity.
+4. Classify the scope as `ready`, `partial`, or `blocked`.
+5. Return a compact readiness summary with blockers and open questions.
+
+## Escalation
+
+- Escalate upstream when the issue is systemic or composition-level.
+- Mark the scope `blocked` when implementation would have to invent or choose arbitrarily.

@@ -1,0 +1,33 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Env / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Build / dist
+dist/
+build/
+out/
+coverage/
+
+# Local archives
+archive/

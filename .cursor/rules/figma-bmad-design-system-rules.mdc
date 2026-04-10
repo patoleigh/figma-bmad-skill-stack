@@ -1,0 +1,31 @@
+# Figma BMAD Design System Rules
+
+Canonical reference: `docs/figma-bmad/design-system-rules.md`
+
+## Purpose
+
+Use this rule when the task is to audit or normalize design-system usage inside an existing Figma file.
+
+## Applies when
+
+- canonical source is unclear
+- variables, naming, components, or variants need normalization
+- the file needs reuse-first guidance before composition
+
+## Does not apply when
+
+- the task is composing a screen
+- the task is readiness gating for implementation
+
+## Workflow
+
+1. Inspect the scoped file or area.
+2. Identify the canonical source.
+3. Normalize variables, naming, components, and layout behavior.
+4. Check responsive and accessibility basics at the system-rule level.
+5. Return a compact rule summary with open points.
+
+## Escalation
+
+- If there is no meaningful system foundation, output only a minimal starter rule set.
+- If sources conflict, flag the conflict instead of merging locally.

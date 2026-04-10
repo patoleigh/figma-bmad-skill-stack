@@ -1,0 +1,33 @@
+# Figma BMAD Compose Screen
+
+Canonical reference: `docs/figma-bmad/compose-screen.md`
+
+## Purpose
+
+Use this rule when composing or updating a bounded screen, section, or short flow from an existing Figma system.
+
+## Applies when
+
+- a concrete UI scope must be assembled or updated
+- existing components and patterns should be reused first
+- the task is local composition, not system authoring
+
+## Does not apply when
+
+- the main issue is system-rule definition
+- the task is broad visual exploration
+- the task is handoff readiness evaluation
+
+## Workflow
+
+1. Confirm the scope and purpose.
+2. Inspect nearby patterns, components, variables, and states.
+3. Build structure before detail.
+4. Choose components by role, not superficial similarity.
+5. Reuse first, extend when needed, escalate system gaps.
+6. Return a compact composition summary with reused assets, extensions, and blockers.
+
+## Escalation
+
+- Escalate canonical source conflicts, unresolved component gaps, and contradictory patterns upstream.
+- Stop local composition when the missing answer depends on system clarification.
