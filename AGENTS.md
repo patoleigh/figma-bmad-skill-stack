@@ -29,3 +29,8 @@ Supported runtimes:
 - Cursor via `.cursor/rules/`
 
 Canonical documentation lives in `docs/figma-bmad/`. Runtime-specific wrappers should stay aligned to those canonical documents.
+
+Persistent project artifacts produced by the stack:
+
+- `Guidelines.md` — written by `design-system-rules` (optional), read by `prd-to-screen-plan` and `compose-screen`
+- `planning/<feature-slug>-screen-plan.md` — written by `prd-to-screen-plan` (mandatory), read by `compose-screen`

@@ -6,11 +6,14 @@ Canonical reference: `docs/figma-bmad/prd-to-screen-plan.md`
 
 Use this rule when the task is to translate product requirements into a structured screen plan that feeds `figma-bmad-compose-screen`.
 
+Writing a persistent planning artifact is mandatory. The plan is written to `planning/<feature-slug>-screen-plan.md` and returned in chat.
+
 ## Applies when
 
 - starting design work from a PRD, feature brief, or product description
 - breaking a feature into concrete, named views before composition begins
 - identifying critical states, reuse opportunities, and pre-composition blockers per view
+- updating an existing planning artifact after requirements change
 
 ## Does not apply when
 
@@ -20,12 +23,15 @@ Use this rule when the task is to translate product requirements into a structur
 
 ## Workflow
 
-1. Confirm the requirements source and overall feature scope.
-2. Extract the implied views: name each by user purpose, not visual layout.
-3. For each view, define purpose, primary action, and critical states.
-4. Identify likely reuse opportunities at the pattern-family level.
-5. Flag pre-composition blockers and open questions.
-6. Return a compact screen plan using the output structure from the canonical guide.
+1. Read `Guidelines.md` if it exists in the project repo.
+2. Check whether `planning/<feature-slug>-screen-plan.md` already exists for this scope. If so, update it rather than creating a new file.
+3. Confirm the requirements source and overall feature scope.
+4. Extract the implied views: name each by user purpose, not visual layout.
+5. For each view, define purpose, primary action, and critical states.
+6. Identify likely reuse opportunities at the pattern-family level.
+7. Flag pre-composition blockers and open questions.
+8. Write or update `planning/<feature-slug>-screen-plan.md`.
+9. Return the same compact screen plan in chat.
 
 ## Escalation
 

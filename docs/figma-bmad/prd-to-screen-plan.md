@@ -6,14 +6,19 @@ Use this skill to translate product requirements into a compact, structured scre
 
 The skill is intentionally narrow. Its job is to:
 
+- read project guidelines from `Guidelines.md` if available, as an upstream context baseline
 - read PRD-like product requirements or feature descriptions
 - identify the views, screens, or bounded UI areas implied by those requirements
 - define the purpose, primary actions, and critical states for each view
 - identify likely reuse opportunities from the current system before composition begins
 - surface gaps that must be resolved before composition can proceed cleanly
 - produce a stable, repeatable output that downstream composition can use as input context
+- write that output as a persistent planning artifact in the repo under `planning/`
+- return the same planning output in chat
 
 This skill does not compose screens. It does not touch the Figma canvas. It does not define or normalize system rules. It produces a planning artifact — a structured screen plan — that feeds the next layer.
+
+Writing the planning artifact to the repo is mandatory, not optional. The persistent file is the primary handoff to `figma-bmad-compose-screen`. The chat output is a secondary convenience.
 
 ## Relationship to the stack
 
@@ -27,6 +32,10 @@ This skill is upstream of:
 - `figma-bmad-handoff-readiness`
 
 Assume `figma-bmad-design-system-rules` has already produced a system rule summary. Use that summary to identify reuse opportunities and to flag pre-composition blockers. Do not repeat the system audit here.
+
+If `Guidelines.md` exists in the repo, read it before planning begins. It is the stable project baseline that combines resolved design system rules and active project conventions. The guidelines file provides system context that would otherwise require re-reading the full system rule summary.
+
+The planning artifact written by this skill becomes the primary input for `figma-bmad-compose-screen`. Composition must not start from scratch if a planning artifact already exists for the same feature scope.
 
 This skill must not replace any other layer:
 
@@ -43,6 +52,7 @@ Use this skill when the task is any of the following:
 - producing a stable planning input for screen composition
 - deciding which views need composition first based on priority or dependency
 - flagging system reuse opportunities and composition blockers before composition starts
+- updating an existing planning artifact for a feature scope when requirements have changed
 
 ## When NOT to use
 
@@ -66,6 +76,7 @@ Do not use this skill to jump directly from requirements to composed UI. The cor
 
 - a product requirements document, feature brief, or structured description of what the product or feature should do
 - the upstream system rule summary from `figma-bmad-design-system-rules`, or a description of the current Figma system state
+- `Guidelines.md` from the project repo, if it exists — used as the stable system and rule context baseline
 - any known constraints: target platform, breakpoints, user roles, flow entry points
 
 Optional but helpful:
@@ -73,8 +84,18 @@ Optional but helpful:
 - existing screens or flows already in the Figma file that the new work should align with
 - known user journey steps or task flows
 - any previously identified system gaps or component family limits
+- any existing planning artifact for the same feature scope, to determine whether to update or create
 
 ## Expected outputs
+
+This skill always produces two outputs:
+
+1. **Chat output**: the compact screen plan returned inline in the current session.
+2. **Persistent artifact**: the same content written to `planning/<feature-slug>-screen-plan.md` in the project repo.
+
+Both outputs use the same structure. The persistent artifact is the primary handoff to `figma-bmad-compose-screen`.
+
+Content of the output:
 
 - a compact screen plan covering all views implied by the requirements
 - a clear purpose and primary action for each view
@@ -82,6 +103,23 @@ Optional but helpful:
 - a list of likely reuse opportunities from the current system per view
 - a list of pre-composition blockers: system gaps, unresolved product decisions, or ambiguities that would prevent clean composition
 - a short list of open questions for items that are too ambiguous to plan with confidence
+
+### Planning artifact file path
+
+Use the path: `planning/<feature-slug>-screen-plan.md`
+
+Rules for the feature slug:
+
+- Derive from the feature name, PRD section title, or product area — whichever is most stable and recognizable.
+- Use kebab-case. Remove articles and stop words. Keep it short enough to be scannable in a file listing.
+- Examples: `planning/user-authentication-screen-plan.md`, `planning/checkout-flow-screen-plan.md`, `planning/dashboard-overview-screen-plan.md`
+
+Rules for update vs create:
+
+- If `planning/<feature-slug>-screen-plan.md` already exists, open and update it instead of creating a new file.
+- Do not create a second file for the same feature scope. A new planning run for the same scope is an update to the existing artifact, not a separate document.
+- If multiple partial planning files exist for overlapping feature scopes, note the overlap in the open questions section of the new artifact. Do not silently merge them without evidence.
+- If no planning file exists for the current feature, create one.
 
 Use this compact output shape so results stay consistent between runs:
 
@@ -133,36 +171,45 @@ Use this compact output shape so results stay consistent between runs:
 
 ## Core workflow
 
-1. Confirm the requirements source and scope.
+1. Read project guidelines if available.
+   Check whether `Guidelines.md` exists in the project repo. If it does, read it before planning begins. The active project rules, holds, and any documented system baseline in that file provide the rule context for reuse identification. Do not re-run the system audit here. If `Guidelines.md` does not exist, proceed using the upstream system rule summary from `figma-bmad-design-system-rules` if available.
+
+2. Check for an existing planning artifact.
+   Before creating a new file, check whether `planning/<feature-slug>-screen-plan.md` already exists for the current feature scope. If it does, the outcome of this run is an update to that file, not a new document.
+
+3. Confirm the requirements source and scope.
    Identify the PRD section, feature brief, or product description being used. Establish the overall scope: what product area or feature set is covered. Do not plan beyond the stated scope.
 
-2. Use upstream system rules as a reference baseline.
-   If a system rule summary from `figma-bmad-design-system-rules` is available, use it to understand what pattern families, components, and tokens already exist. This informs reuse identification and blocker detection. Do not re-run the system audit here.
+4. Use upstream system rules as a reference baseline.
+   If a system rule summary from `figma-bmad-design-system-rules` is available, use it alongside `Guidelines.md` to understand what pattern families, components, and tokens already exist. This informs reuse identification and blocker detection. Do not re-run the system audit here.
 
-3. Extract the implied views from the requirements.
+5. Extract the implied views from the requirements.
    Read the requirements to identify the distinct user-facing areas, screens, or bounded flow steps implied. Use `references/view-mapping.md` for guidance on how to translate product language to bounded view definitions. Do not invent views beyond what the requirements imply, and do not collapse separate concerns into a single view when the requirements suggest they serve different purposes.
 
-4. Define purpose and primary action for each view.
+6. Define purpose and primary action for each view.
    For each identified view, state: what the view enables the user to do, and what the main action is. Keep these definitions short and grounded in the requirements. Do not introduce product intent beyond what the requirements support.
 
-5. Identify critical states per view.
+7. Identify critical states per view.
    For each view, identify which interaction states are critical to its correct operation. Use `references/state-prioritization.md` to decide which states matter at the planning stage. Do not enumerate every possible state; focus on the ones that would be visibly missing at composition time.
 
-6. Identify reuse opportunities per view and across the plan.
+8. Identify reuse opportunities per view and across the plan.
    For each view, identify which existing pattern families, component sets, or token groups are likely relevant. Use `references/reuse-opportunities.md` for the working approach. Note cross-view patterns that should be consistent. Do not pre-select specific component instances or make variant decisions — that belongs to composition.
 
-7. Identify pre-composition blockers.
+9. Identify pre-composition blockers.
    For each view, and for the plan as a whole, identify what must be resolved before composition can proceed cleanly. Use `references/screen-planning.md` for the types of blockers to look for:
    - system gaps: the required pattern family does not exist in the current system
    - product ambiguity: the requirement is too vague to know what the view should do
    - dependency: this view cannot be composed until another view or system decision is settled
    - escalation: the issue should be resolved upstream in `figma-bmad-design-system-rules` before composition starts
 
-8. Record open questions instead of inventing answers.
-   If a requirement is too ambiguous to map to a confident view definition, record the open question explicitly. Do not invent views with false certainty. Do not infer product strategy beyond what the requirements state.
+10. Record open questions instead of inventing answers.
+    If a requirement is too ambiguous to map to a confident view definition, record the open question explicitly. Do not invent views with false certainty. Do not infer product strategy beyond what the requirements state.
 
-9. Produce the compact screen plan output.
-   Assemble the final output using the structure defined in `Expected outputs`. Keep it short enough to be usable as a planning input for individual composition runs.
+11. Produce the compact screen plan output and write the planning artifact.
+    Assemble the final output using the structure defined in `Expected outputs`. Keep it short enough to be usable as a planning input for individual composition runs.
+    - Write or update the planning artifact at `planning/<feature-slug>-screen-plan.md`.
+    - If the file already exists, update it in place. Do not create a duplicate.
+    - Also return the same content in chat as the session output.
 
 ## Decision rules
 
@@ -175,6 +222,14 @@ Use this compact output shape so results stay consistent between runs:
 - Planning confidence reflects the quality of the input requirements. Low confidence does not mean the plan is wrong — it means composition should treat it as provisional.
 - A view in the plan is not a composition scope. Each view in the plan will become a separate `compose-screen` run. Do not let planning become composition.
 
+Planning artifact rules:
+
+- The planning artifact is always written. It is not optional.
+- Derive the feature slug from the feature name or PRD section title, in kebab-case.
+- If the file `planning/<feature-slug>-screen-plan.md` already exists, update it. Do not create a duplicate.
+- If multiple planning files exist for overlapping scopes, note the overlap in open questions. Do not merge silently.
+- The content of the artifact must match the chat output exactly. There is one version, not two.
+
 ## Constraints
 
 - Stay within the stated requirements. Do not add product features or capabilities that the requirements do not support.
@@ -185,6 +240,8 @@ Use this compact output shape so results stay consistent between runs:
 - Do not select specific components, variants, or variable values. That belongs to `figma-bmad-compose-screen`.
 - Keep the output structure compact. A screen plan that needs to be read for 20 minutes cannot practically feed composition.
 - Do not attempt to plan every edge case or micro-interaction. Focus on what matters for the composition layer to start.
+- Always write the planning artifact. Skipping the file write is not permitted.
+- Do not create a second planning file for a scope that already has one. Update the existing file.
 
 ## Edge cases
 
@@ -196,6 +253,9 @@ Use this compact output shape so results stay consistent between runs:
 
 - The upstream system rule summary is unavailable.
   Proceed with available evidence. Note that reuse identification is lower confidence without a system baseline. Flag this in planning confidence.
+
+- `Guidelines.md` does not exist.
+  Proceed using the system rule summary from chat context if available. Note in planning confidence that the guidelines baseline was not consulted.
 
 - Multiple requirements contradict each other.
   Do not resolve the contradiction. Record it as a pre-composition blocker and open question. Composition should not proceed until the contradiction is resolved.
@@ -209,8 +269,19 @@ Use this compact output shape so results stay consistent between runs:
 - A view in the plan depends on another view being completed first.
   Note the dependency explicitly under cross-view considerations and composition order. Do not let the plan obscure ordering constraints.
 
+- A planning artifact already exists for this feature scope.
+  Read the existing file before starting. Update it in place based on the current run. Do not create a parallel file. Preserve unchanged sections and update only what the current requirements change.
+
+- Multiple partial planning files exist for overlapping scopes.
+  Do not silently merge them. Note the overlap in the open questions section of the new or updated artifact. Establish one canonical file path for the current scope and treat it as the primary artifact going forward.
+
+- The scope of the new planning run is narrower than the existing planning artifact.
+  Update only the relevant sections of the existing file. Label the unchanged sections as unreviewed in this run if the scope was explicitly limited.
+
 ## Final checklist
 
+- `Guidelines.md` was read if it exists in the project repo, or the absence was noted
+- Existing planning artifact for this feature scope was checked before creating a new file
 - Requirements source and scope are explicitly stated
 - All implied views are identified and named
 - Each view has a defined purpose and primary action
@@ -221,3 +292,5 @@ Use this compact output shape so results stay consistent between runs:
 - The output is planning-level only: no component selection, no layout decisions, no canvas changes
 - Planning confidence is stated and reflects input quality
 - The plan is compact enough to be usable as input for individual composition runs
+- Planning artifact written to `planning/<feature-slug>-screen-plan.md` (created or updated)
+- Chat output matches the artifact content exactly

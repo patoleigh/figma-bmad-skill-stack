@@ -93,6 +93,7 @@ Use when:
 - starting design work from a PRD, feature brief, or product description
 - breaking a feature into concrete named views before any Figma work begins
 - identifying what states, reuse opportunities, and blockers apply to each view before composition starts
+- updating an existing planning artifact after requirements change
 
 Do not use when:
 
@@ -103,6 +104,12 @@ Do not use when:
 Primary question:
 
 - Given these requirements and the current system, what views should exist, what is each one for, what states matter, what can be reused, and what blocks composition?
+
+Default behavior:
+
+- Reads `Guidelines.md` if it exists
+- Always writes the result to `planning/<feature-slug>-screen-plan.md`
+- Updates the existing file for the same feature scope rather than creating a duplicate
 
 ### `figma-bmad-compose-screen`
 
@@ -118,10 +125,18 @@ Do not use when:
 - views from requirements still need to be planned
 - the main task is broad visual exploration
 - the main task is handoff evaluation
+- no planning artifact and no scoped planning context are available
 
 Primary question:
 
 - How should this specific UI scope be composed using the existing system?
+
+Default behavior:
+
+- Reads `Guidelines.md` if it exists
+- Reads `planning/<feature-slug>-screen-plan.md` for the current feature scope before composing
+- Composes one specific view per run
+- Falls back to scoped chat context when no planning artifact exists; surfaces missing scope as a blocker if neither is available
 
 ### `figma-bmad-handoff-readiness`
 
@@ -186,19 +201,25 @@ Typical upstream outputs that help planning:
 - existing component and pattern families
 - naming conventions
 - known system gaps or inconsistencies
+- `Guidelines.md` if generated (project-level rule baseline)
 
 These allow `prd-to-screen-plan` to identify reuse opportunities and blockers with more accuracy.
 
 ### From `prd-to-screen-plan` to `compose-screen`
 
-The screen plan output:
+`prd-to-screen-plan` always writes a persistent planning artifact to `planning/<feature-slug>-screen-plan.md`. This file is the primary handoff to composition.
+
+The planning artifact contains:
 
 - proposed views with purpose and primary action
 - critical states per view
 - reuse opportunities per view
-- pre-composition blockers and open questions
+- cross-view considerations
+- system reuse opportunities
+- pre-composition blockers
+- open questions
 
-`compose-screen` uses the screen plan as input context for each individual composition run. Each view in the plan becomes a separate bounded composition scope.
+`compose-screen` reads this file at the start of each composition run. Each view in the plan becomes a separate bounded composition scope. Composition must not begin without a planning artifact or explicitly scoped chat context.
 
 ### From `compose-screen` to `handoff-readiness`
 
@@ -213,9 +234,16 @@ Typical composition outputs that help readiness review:
 
 `handoff-readiness` uses that context, but still judges based on visible evidence in the file.
 
+### Project artifacts shared across the stack
+
+Two project-level artifacts are shared across multiple skills:
+
+- `Guidelines.md` — written by `design-system-rules`, read by `prd-to-screen-plan` and `compose-screen`
+- `planning/<feature-slug>-screen-plan.md` — written by `prd-to-screen-plan`, read by `compose-screen`
+
 ### Important practical rule
 
-Each downstream skill may use the prior skill's summary, but it should not trust the summary blindly. The file itself remains the main evidence source.
+Each downstream skill may use the prior skill's output, but it should not trust it blindly. The Figma file remains the primary visual evidence source. Planning artifacts and guidelines provide intent and rule context, not visual ground truth.
 
 ## Escalation model
 
@@ -303,8 +331,8 @@ It is specifically a Figma-side operating stack for:
 | skill | role | primary output | escalates when |
 |---|---|---|---|
 | `figma-bmad-design-system-rules` | Rule layer | system rule summary for the current file or scoped area; optional guidelines baseline or patch when explicitly requested or `Guidelines.md` is empty | the file lacks enough evidence even to stabilize rules |
-| `figma-bmad-prd-to-screen-plan` | Planning layer | compact screen plan: views, purposes, states, reuse, and blockers | requirements are too ambiguous, or a view requires a missing system pattern |
-| `figma-bmad-compose-screen` | Composition layer | scoped screen composition summary | the blocker is really a system gap or contradiction |
+| `figma-bmad-prd-to-screen-plan` | Planning layer | persistent planning artifact at `planning/<feature-slug>-screen-plan.md` + same content in chat; reads `Guidelines.md` | requirements are too ambiguous, or a view requires a missing system pattern |
+| `figma-bmad-compose-screen` | Composition layer | scoped screen composition summary; reads planning artifact and `Guidelines.md` before composing | the blocker is really a system gap or contradiction |
 | `figma-bmad-handoff-readiness` | Readiness gate | `ready` / `partial` / `blocked` handoff summary | the scope still needs composition work or upstream rule resolution |
 
 ## Final note
@@ -317,3 +345,4 @@ This stack is intentionally narrow. It works best when each skill stays inside i
 - readiness gate last
 
 That separation is the main protection against mixing system authoring, product planning, local UI decisions, and handoff judgment into one blurred workflow.
+
