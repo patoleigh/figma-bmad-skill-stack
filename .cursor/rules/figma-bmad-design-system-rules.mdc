@@ -6,16 +6,24 @@ Canonical reference: `docs/figma-bmad/design-system-rules.md`
 
 Use this rule when the task is to audit or normalize design-system usage inside an existing Figma file.
 
+Two output modes are supported:
+
+- **Audit-only** (default): compact system rule summary with open points.
+- **Audit + guidelines baseline/patch** (optional): generate or propose a patch to a project `Guidelines.md`. Active only when explicitly requested or when `Guidelines.md` is empty.
+
 ## Applies when
 
 - canonical source is unclear
 - variables, naming, components, or variants need normalization
 - the file needs reuse-first guidance before composition
+- `Guidelines.md` is empty and a conservative baseline is requested
+- a targeted patch to an existing `Guidelines.md` is requested
 
 ## Does not apply when
 
 - the task is composing a screen
 - the task is readiness gating for implementation
+- the system audit is fully unresolved and guidelines output would produce false certainty
 
 ## Workflow
 
@@ -24,8 +32,10 @@ Use this rule when the task is to audit or normalize design-system usage inside 
 3. Normalize variables, naming, components, and layout behavior.
 4. Check responsive and accessibility basics at the system-rule level.
 5. Return a compact rule summary with open points.
+6. (Optional) If guidelines mode is active, map resolved audit items to active project rules, holds, and unresolved decisions. Never promote an unresolved audit item to a rule.
 
 ## Escalation
 
 - If there is no meaningful system foundation, output only a minimal starter rule set.
 - If sources conflict, flag the conflict instead of merging locally.
+- If guidelines mode is requested but the system is fully unresolved, skip the guidelines output and record the blocker.

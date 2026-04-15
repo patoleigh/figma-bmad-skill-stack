@@ -11,6 +11,13 @@ The skill is intentionally narrow. Its job is to:
 - normalize variables, naming, and component decisions
 - catch basic consistency, responsive, and accessibility issues
 
+It supports two output modes:
+
+- **Audit-only** (default): produces the compact system rule summary. No guidelines file is generated or modified.
+- **Audit + guidelines baseline/patch** (optional): after the audit, generates or proposes an update to a project-facing guidelines document. This mode is active only when explicitly requested, or when the project guidelines file is empty and the audit evidence is sufficient for a conservative baseline.
+
+The guidelines output is always grounded in the audit result. It never fabricates resolved decisions, never silently merges conflicting canonical sources, and never writes authoritative rules where the evidence is incomplete.
+
 This skill is based primarily on the BMAD material mapped as portable from:
 
 - `bmad-create-ux-design` design system, visual foundation, component strategy, UX patterns, and responsive/accessibility
@@ -33,6 +40,8 @@ Use this skill when the task is any of the following:
 - review a partial library before more design work continues
 - verify basic responsive and accessibility readiness at the system-rule level
 - create a compact rule set for how the Figma system should be used going forward
+- generate a conservative baseline `Guidelines.md` when the project guidelines file is empty
+- propose a patch to an existing `Guidelines.md` without overwriting unresolved system decisions
 
 Read references only as needed:
 
@@ -70,6 +79,8 @@ Optional but helpful:
 
 ## Expected outputs
 
+### Audit-only output (always produced)
+
 - a compact, explicit rule set for using the design system inside the current file
 - a decision for each reviewed area: reuse, extend, normalize, or create new
 - a short list of unresolved gaps or ambiguities
@@ -102,6 +113,39 @@ Use this compact output shape so results stay consistent between runs:
 
 - [ambiguity, conflict, or missing evidence]
 ```
+
+### Guidelines baseline/patch output (optional)
+
+Produced only when:
+
+- explicitly requested, or
+- the project guidelines file is empty and the audit has enough resolved evidence for a conservative baseline
+
+Use this shape for the guidelines output:
+
+```md
+## Guidelines baseline
+
+### Active project rules
+[Only resolved, evidence-backed rules. Each rule must be traceable to audit findings.]
+
+### Holds — do not expand yet
+[Patterns, components, or decisions to defer. Include the reason.]
+
+### Unresolved decisions
+[System conflicts, competing canonical sources, or open team decisions that cannot be resolved from file evidence alone. These must not be promoted to active rules.]
+
+### Suggested patch for Guidelines.md
+[Only when Guidelines.md already exists. List additions or revisions to specific sections. Never replace the full file; propose targeted updates only.]
+```
+
+Guidelines output rules:
+
+- Only resolved rules from the audit may be written as active project rules.
+- Unresolved system conflicts must remain explicitly listed as unresolved decisions, not collapsed into a rule.
+- When evidence is mixed or the canonical source is still in conflict, produce only a conservative baseline. Do not invent a final rule set.
+- If `Guidelines.md` already exists and is non-empty, produce a patch proposal. Do not blindly replace the file.
+- If the system is fully unresolved, do not produce a guidelines output at all. Record the blocker and stop.
 
 ## Core workflow
 
@@ -148,6 +192,15 @@ Use this compact output shape so results stay consistent between runs:
 9. Summarize the system rule outcome.
    Produce the final output using the compact structure from `Expected outputs`.
 
+10. (Optional) Generate or patch project guidelines.
+    Only when explicitly requested, or when `Guidelines.md` is empty and the audit evidence is sufficient:
+    - Map audit decisions to active project rules, holds, and unresolved decisions.
+    - Write active project rules only for items where the audit reached a clear, evidence-backed conclusion.
+    - List holds explicitly with the reason for deferral.
+    - List unresolved decisions explicitly. Do not resolve them in this step.
+    - If `Guidelines.md` already exists and has content, produce a targeted patch proposal only. Do not replace the file.
+    - If the system is fully unresolved, skip this step entirely and note the blocker.
+
 ## Decision rules
 
 - Reuse an existing library component if it already matches the purpose, pattern, and required state coverage closely enough.
@@ -164,6 +217,15 @@ Use this compact output shape so results stay consistent between runs:
 - Treat accessibility and responsive basics as system rules, not as optional cleanup.
 - If evidence is weak or the current file is inconsistent, document the ambiguity instead of inventing certainty.
 
+Guidelines-specific decision rules:
+
+- Only audit-resolved items may be written as active project rules in the guidelines output.
+- Any item that remains in the audit's "open points" must appear in the guidelines output as an unresolved decision, not as a rule.
+- When the canonical source is still in conflict, do not generate a guidelines output. Record the blocker.
+- When evidence is mixed, produce a conservative baseline that documents what is known and explicitly labels what is not.
+- Do not fabricate a final design system decision to fill a gap in the guidelines. A missing decision is better than a false one.
+- If `Guidelines.md` exists and is non-empty, propose a patch. Never replace the full document blindly.
+
 ## Constraints
 
 - Stay inside the current design-system scope.
@@ -173,6 +235,10 @@ Use this compact output shape so results stay consistent between runs:
 - Do not define implementation details that belong to engineering architecture.
 - Do not over-document obvious rules; keep the output lean and high-signal.
 - Do not force a full token model if the file only supports a smaller, partial foundation.
+- Do not generate a guidelines output by default. The audit-only mode is the default.
+- Do not write authoritative guidelines rules where the audit evidence is incomplete or unresolved.
+- Do not use the guidelines output to turn this skill into a broad documentation generator. Only project rules directly derivable from the audit are in scope.
+- If `Guidelines.md` is non-empty, never replace its content. Propose targeted additions or revisions only.
 
 ## Edge cases
 
@@ -197,7 +263,21 @@ Use this compact output shape so results stay consistent between runs:
 - Responsive targets are unknown.
   Apply only basic responsive checks and label the breakpoint logic as unresolved. Do not invent a breakpoint strategy without evidence.
 
+- `Guidelines.md` is empty.
+  The skill may propose a conservative baseline if the audit produced enough resolved evidence. The baseline must separate active rules, holds, and unresolved decisions clearly. It must not read as a final or complete design system specification.
+
+- `Guidelines.md` already exists and has content.
+  Produce a targeted patch proposal only. Identify specific sections or rules that should be added, corrected, or flagged as outdated based on the current audit. Do not replace the file or rewrite sections that the audit did not review.
+
+- The system is fully unresolved after the audit.
+  Do not generate a guidelines output. Record the blocker in the open points and stop. A guidelines output on top of an unresolved system produces false certainty.
+
+- Guidelines output is requested but the audit scope was narrow.
+  Limit the guidelines output to the audited scope. Label clearly that the output covers only the reviewed area and does not represent the full system.
+
 ## Final checklist
+
+### Audit checklist (always)
 
 - Canonical library or local system source identified
 - Reuse-first decision applied
@@ -212,3 +292,15 @@ Use this compact output shape so results stay consistent between runs:
 - Basic responsive assumptions checked or marked unresolved
 - Basic accessibility checks completed
 - Ambiguities and unresolved conflicts called out explicitly
+
+### Guidelines output checklist (only when guidelines mode is active)
+
+- Guidelines mode was explicitly requested or `Guidelines.md` is empty
+- Audit was completed before guidelines output was generated
+- Active project rules contain only audit-resolved items
+- Holds list includes deferral reasons
+- Unresolved decisions list is non-empty if the audit had open points
+- No active rule was written for a system item that remains unresolved
+- If `Guidelines.md` exists and is non-empty, a patch was proposed rather than a full replacement
+- Output is scoped to the audited area; any wider claim is labeled as out of scope
+- No fabricated certainty: every rule is traceable to an audit finding

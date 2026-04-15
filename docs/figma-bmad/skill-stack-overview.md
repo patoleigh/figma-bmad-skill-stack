@@ -68,16 +68,23 @@ Use when:
 - canonical source is unclear
 - variables, naming, components, or consistency need normalization
 - responsive or accessibility basics need to be checked at the system level
+- `Guidelines.md` is empty and a conservative guidelines baseline is needed
+- a patch to an existing `Guidelines.md` is requested after an audit
 
 Do not use when:
 
 - the real task is planning views from requirements
 - the real task is composing a screen
 - the real task is a handoff gate
+- guidelines output is requested but the system audit is fully unresolved
 
 Primary question:
 
 - What rules should govern this file or scoped system area?
+
+Optional secondary question (guidelines mode only):
+
+- Given the audit result, which rules are resolved enough to document, which decisions should be held, and which must remain explicitly unresolved?
 
 ### `figma-bmad-prd-to-screen-plan`
 
@@ -295,7 +302,7 @@ It is specifically a Figma-side operating stack for:
 
 | skill | role | primary output | escalates when |
 |---|---|---|---|
-| `figma-bmad-design-system-rules` | Rule layer | system rule summary for the current file or scoped area | the file lacks enough evidence even to stabilize rules |
+| `figma-bmad-design-system-rules` | Rule layer | system rule summary for the current file or scoped area; optional guidelines baseline or patch when explicitly requested or `Guidelines.md` is empty | the file lacks enough evidence even to stabilize rules |
 | `figma-bmad-prd-to-screen-plan` | Planning layer | compact screen plan: views, purposes, states, reuse, and blockers | requirements are too ambiguous, or a view requires a missing system pattern |
 | `figma-bmad-compose-screen` | Composition layer | scoped screen composition summary | the blocker is really a system gap or contradiction |
 | `figma-bmad-handoff-readiness` | Readiness gate | `ready` / `partial` / `blocked` handoff summary | the scope still needs composition work or upstream rule resolution |
