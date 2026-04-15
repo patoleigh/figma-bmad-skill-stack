@@ -2,11 +2,12 @@
 
 This repository contains a small Figma MCP skill stack derived from BMAD and packaged for multiple runtimes.
 
-It is designed for work inside an existing Figma file and separates three concerns:
+It is designed for work inside an existing Figma file and separates four concerns:
 
 1. system rules
-2. scoped screen composition
-3. handoff readiness
+2. screen planning from product requirements
+3. scoped screen composition
+4. handoff readiness
 
 ## What this repo contains
 
@@ -25,8 +26,9 @@ It is designed for work inside an existing Figma file and separates three concer
 Run the stack in this order:
 
 1. `design-system-rules`
-2. `compose-screen`
-3. `handoff-readiness`
+2. `prd-to-screen-plan`
+3. `compose-screen`
+4. `handoff-readiness`
 
 If a later layer finds an upstream problem, go back instead of resolving it locally.
 
@@ -36,6 +38,7 @@ If a later layer finds an upstream problem, go back instead of resolving it loca
 docs/
   figma-bmad/
     design-system-rules.md
+    prd-to-screen-plan.md
     compose-screen.md
     handoff-readiness.md
     skill-stack-overview.md

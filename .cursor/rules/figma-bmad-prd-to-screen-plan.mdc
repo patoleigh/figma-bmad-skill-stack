@@ -1,0 +1,34 @@
+# Figma BMAD PRD to Screen Plan
+
+Canonical reference: `docs/figma-bmad/prd-to-screen-plan.md`
+
+## Purpose
+
+Use this rule when the task is to translate product requirements into a structured screen plan that feeds `figma-bmad-compose-screen`.
+
+## Applies when
+
+- starting design work from a PRD, feature brief, or product description
+- breaking a feature into concrete, named views before composition begins
+- identifying critical states, reuse opportunities, and pre-composition blockers per view
+
+## Does not apply when
+
+- the task is auditing or normalizing system rules
+- the task is composing a specific screen on the Figma canvas
+- the task is evaluating a composed scope for handoff readiness
+
+## Workflow
+
+1. Confirm the requirements source and overall feature scope.
+2. Extract the implied views: name each by user purpose, not visual layout.
+3. For each view, define purpose, primary action, and critical states.
+4. Identify likely reuse opportunities at the pattern-family level.
+5. Flag pre-composition blockers and open questions.
+6. Return a compact screen plan using the output structure from the canonical guide.
+
+## Escalation
+
+- If requirements are too ambiguous to map to views, record open questions. Do not invent views with false certainty.
+- If a view requires a pattern family absent from the current system, flag as a pre-composition blocker and escalate to `figma-bmad-design-system-rules`.
+- If the task shifts to screen composition, defer to `figma-bmad-compose-screen`.
