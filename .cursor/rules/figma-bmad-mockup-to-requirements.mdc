@@ -1,0 +1,54 @@
+# Figma BMAD Mockup to Requirements
+
+Canonical reference: `docs/figma-bmad/mockup-to-requirements.md`
+
+## Purpose
+
+Use this rule when reconstructing requirements from existing Figma mockups that lack documented product requirements.
+
+This is an **auxiliary recovery tool**, not part of the default workflow. It produces a requirements draft grounded in visible design evidence, not a final PRD.
+
+Writing a persistent requirements artifact is mandatory. The draft is written to `requirements/<feature-slug>-requirements-draft.md` and returned in chat.
+
+## Applies when
+
+- a mockup exists but requirements were never written down
+- legacy designs need to be reverse-documented
+- requirements need to be reconstructed before planning/composition can proceed
+- recovering product intent from existing mockups
+
+## Does not apply when
+
+- starting with known product requirements (use `figma-bmad-prd-to-screen-plan` directly)
+- the task is auditing or defining system rules
+- the task is composing screens or evaluating handoff readiness
+- inventing product strategy where no design evidence exists
+
+## Workflow
+
+1. Read `Guidelines.md` if it exists in the project repo.
+2. Optionally consult the system rule summary to distinguish system conventions from product requirements.
+3. Check whether `requirements/<feature-slug>-requirements-draft.md` already exists for this scope. If so, update it rather than creating a new file.
+4. Analyze the specified Figma mockup, screen, or selection.
+5. Extract visible evidence systematically: layout, UI elements, copy, implied interactions, visible states.
+6. Infer requirements conservatively: screen purpose, user goal, primary/secondary actions, states, business rules, dependencies.
+7. Distinguish product requirements from system conventions.
+8. Separate observed evidence, inferred requirements, assumptions, and open questions explicitly.
+9. Assess confidence and evidence basis.
+10. Write or update `requirements/<feature-slug>-requirements-draft.md`.
+11. Return the same requirements draft in chat.
+
+## Critical constraints
+
+- Stay grounded in visible design evidence. Do not fabricate product strategy or deep business logic with false certainty.
+- Separate observed evidence, inferred requirements, assumptions, and open questions explicitly.
+- Do not generate a full PRD for an entire product if only one view is shown.
+- Do not invent backend, API, or architecture contracts.
+- Always write the requirements artifact. Do not create a duplicate for a scope that already has one.
+
+## Escalation
+
+- If evidence is too limited, produce a low-confidence draft and note the limited evidence basis.
+- If the mockup conflicts with known system conventions, note the conflict explicitly.
+- If the task shifts to screen planning, defer to `figma-bmad-prd-to-screen-plan`.
+- If the task shifts to composition or handoff evaluation, defer to the appropriate skill.

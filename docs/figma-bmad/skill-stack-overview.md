@@ -9,6 +9,10 @@ This stack provides a narrow, practical workflow for working inside an existing 
 3. compose a scoped piece of UI using those rules and the screen plan
 4. decide whether that scoped result is ready for implementation handoff
 
+Plus one auxiliary skill for when requirements are missing:
+
+- recover requirements from existing mockups (alternative entry point)
+
 It does **not** try to cover the full product lifecycle. It is not a replacement for PM work, broad UX discovery, code review, architecture design, or full-product QA.
 
 ## The 4-layer model
@@ -59,6 +63,36 @@ It does not repair the design. It acts as a readiness gate and classifies the sc
 - `blocked`
 
 ## When to use each skill
+
+### `figma-bmad-mockup-to-requirements`
+
+Use when:
+
+- a mockup exists but requirements were never written down
+- legacy designs need to be reverse-documented
+- requirements need to be reconstructed before planning/composition can proceed
+- recovering product intent from existing mockups
+
+Do not use when:
+
+- starting with known product requirements (use `figma-bmad-prd-to-screen-plan` directly)
+- the main task is system-rule definition
+- the task is composing screens or evaluating handoff readiness
+- inventing product strategy where no design evidence exists
+
+Primary question:
+
+- What requirements might this existing mockup address?
+
+Default behavior:
+
+- Reads `Guidelines.md` if it exists, to distinguish system conventions from product requirements
+- Analyzes the specified Figma mockup, screen, or selection
+- Extracts visible evidence systematically
+- Infers requirements conservatively
+- Separates observed evidence, inferred requirements, assumptions, and open questions
+- Always writes the result to `requirements/<feature-slug>-requirements-draft.md`
+- Updates the existing file for the same feature scope rather than creating a duplicate
 
 ### `figma-bmad-design-system-rules`
 
@@ -163,12 +197,20 @@ Primary question:
 
 ## Recommended order of execution
 
-Recommended default order:
+Recommended default order (happy path):
 
 1. `figma-bmad-design-system-rules`
 2. `figma-bmad-prd-to-screen-plan`
 3. `figma-bmad-compose-screen`
 4. `figma-bmad-handoff-readiness`
+
+Alternative order (recovery path when requirements are missing):
+
+1. `figma-bmad-mockup-to-requirements`
+2. Validate the requirements draft with product/design stakeholders
+3. `figma-bmad-prd-to-screen-plan`
+4. `figma-bmad-compose-screen`
+5. `figma-bmad-handoff-readiness`
 
 This order is not arbitrary:
 
@@ -196,6 +238,19 @@ When to go back upstream:
 ## Inputs and outputs between skills
 
 The stack does not use rigid contracts, but the flow is clear.
+
+### From `figma-bmad-mockup-to-requirements` to `figma-bmad-prd-to-screen-plan`
+
+`figma-bmad-mockup-to-requirements` always writes a persistent requirements artifact to `requirements/<feature-slug>-requirements-draft.md`. This file is an optional input to planning when requirements were recovered from mockups.
+
+The requirements artifact contains:
+
+- observed evidence from the mockup
+- inferred requirements (screen purpose, user goal, actions, states, business rules)
+- assumptions made
+- missing requirements / open questions
+
+`prd-to-screen-plan` can read this file as a requirements source when validated requirements are not otherwise available. The requirements draft should be validated by stakeholders before feeding into planning.
 
 ### From `design-system-rules` to `prd-to-screen-plan`
 
@@ -240,9 +295,10 @@ Typical composition outputs that help readiness review:
 
 ### Project artifacts shared across the stack
 
-Two project-level artifacts are shared across multiple skills:
+Three project-level artifacts are shared across multiple skills:
 
-- `Guidelines.md` — written by `design-system-rules`, read by `prd-to-screen-plan` and `compose-screen`
+- `Guidelines.md` — written by `design-system-rules`, read by `prd-to-screen-plan`, `compose-screen`, and `mockup-to-requirements`
+- `requirements/<feature-slug>-requirements-draft.md` — written by `mockup-to-requirements`, read by `prd-to-screen-plan` (when validated)
 - `planning/<feature-slug>-screen-plan.md` — written by `prd-to-screen-plan`, read by `compose-screen`
 
 ### Important practical rule
@@ -285,26 +341,40 @@ Working principle:
 
 ## Example usage flows
 
-### 1. Audit the system before planning or designing new screens
+### 1. Recover requirements from a legacy mockup, then plan and compose
+
+1. Run `figma-bmad-mockup-to-requirements` on the existing mockup to produce a requirements draft.
+2. Validate the requirements draft with product/design stakeholders. Update the draft as needed.
+3. Run `figma-bmad-prd-to-screen-plan` using the validated requirements draft to map requirements to views.
+4. For each view in the plan, run `figma-bmad-compose-screen` individually.
+5. Run `figma-bmad-handoff-readiness` on the composed scope.
+
+### 2. Audit the system before planning or designing new screens
+
+### 2. Audit the system before planning or designing new screens
 
 1. Run `figma-bmad-design-system-rules` on the relevant library or scoped area.
 2. Identify canonical source, reuse-first rules, and system gaps.
 3. Only then run `figma-bmad-prd-to-screen-plan` to map requirements to views.
 
-### 2. Plan views from a feature brief, then compose
+### 3. Plan views from a feature brief, then compose
+
+### 3. Plan views from a feature brief, then compose
 
 1. Run `figma-bmad-prd-to-screen-plan` with the feature brief and the system rule summary.
 2. Identify all implied views, their critical states, and likely reuse.
 3. For each view in the plan, run `figma-bmad-compose-screen` individually.
 4. If planning reveals a missing pattern family, escalate to `figma-bmad-design-system-rules` before composition.
 
-### 3. Compose a new section using existing patterns
+### 4. Compose a new section using existing patterns
+
+### 4. Compose a new section using existing patterns
 
 1. Start with `figma-bmad-compose-screen` if the system layer is already trusted and the scope is already defined.
 2. Compose the scoped section from existing components, variants, variables, and patterns.
 3. If composition finds a true system gap, escalate to `figma-bmad-design-system-rules` instead of inventing a local pattern.
 
-### 4. Review readiness before handing to development
+### 5. Review readiness before handing to development
 
 1. Use `figma-bmad-handoff-readiness` on the final scoped screen or section.
 2. Classify as `ready`, `partial`, or `blocked`.
@@ -334,8 +404,9 @@ It is specifically a Figma-side operating stack for:
 
 | skill | role | primary output | escalates when |
 |---|---|---|---|
+| `figma-bmad-mockup-to-requirements` | Requirements recovery layer (auxiliary) | persistent requirements draft at `requirements/<feature-slug>-requirements-draft.md` + same content in chat; reads `Guidelines.md` | evidence is too limited to infer confident requirements, or task shifts to planning/composition/handoff |
 | `figma-bmad-design-system-rules` | Rule layer | system rule summary for the current file or scoped area; optional guidelines baseline or patch when explicitly requested or `Guidelines.md` is empty | the file lacks enough evidence even to stabilize rules |
-| `figma-bmad-prd-to-screen-plan` | Planning layer | persistent planning artifact at `planning/<feature-slug>-screen-plan.md` + same content in chat; reads `Guidelines.md` | requirements are too ambiguous, or a view requires a missing system pattern |
+| `figma-bmad-prd-to-screen-plan` | Planning layer | persistent planning artifact at `planning/<feature-slug>-screen-plan.md` + same content in chat; reads `Guidelines.md` and optionally validated requirements drafts | requirements are too ambiguous, or a view requires a missing system pattern |
 | `figma-bmad-compose-screen` | Composition layer | scoped screen composition summary; reads planning artifact and `Guidelines.md` before composing | the blocker is really a system gap or contradiction |
 | `figma-bmad-handoff-readiness` | Readiness gate | `ready` / `partial` / `blocked` handoff summary | the scope still needs composition work or upstream rule resolution |
 
@@ -343,10 +414,11 @@ It is specifically a Figma-side operating stack for:
 
 This stack is intentionally narrow. It works best when each skill stays inside its own boundary:
 
+- requirements recovery (auxiliary, when needed)
 - rules first
 - planning second
 - composition third
 - readiness gate last
 
-That separation is the main protection against mixing system authoring, product planning, local UI decisions, and handoff judgment into one blurred workflow.
+That separation is the main protection against mixing requirements recovery, system authoring, product planning, local UI decisions, and handoff judgment into one blurred workflow.
 
