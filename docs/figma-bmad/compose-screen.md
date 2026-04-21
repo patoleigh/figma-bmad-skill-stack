@@ -16,11 +16,59 @@ The skill is intentionally narrow. Its job is to:
 
 The planning artifact defines what this screen is for, what states it must cover, and what the system already offers. The Figma file provides the visual evidence. Guidelines provide the system rules. All three are active inputs.
 
+This skill is self-starting. It does not wait to be told to read Guidelines.md or the planning artifact. It reads them automatically at the start of every run. The prompt only needs to specify which planned view to compose, any decisions resolved for this run, and whether to apply the result or return it.
+
 This skill is downstream of the BMAD-to-Figma analysis that prioritized:
 
 - `bmad-create-ux-design` for core experience, defining interaction, journeys, component strategy, and UX patterns
 - `bmad-create-prd` for capability coverage and edge cases
 - the compact, high-signal packaging pattern derived from `bmad-generate-project-context`
+
+## Default startup sequence
+
+Every compose-screen run begins with this sequence automatically, before reading the specific view request:
+
+**Step A — Read project guidelines.**
+Check whether `Guidelines.md` exists. If it does, read it fully: active project rules, holds, and unresolved decisions. These govern the entire composition run. If it does not exist, proceed using the system rule summary from the current session. Label the absence explicitly in the output.
+
+**Step B — Read the planning artifact.**
+Derive the feature slug from the context or prompt. Check whether `planning/<feature-slug>-screen-plan.md` exists. If it does, read it fully: proposed views, per-view details, critical states, reuse opportunities, and pre-composition blockers. This is the primary scope and intent source for the composition run. If it does not exist, check for scoped planning context in chat. If neither exists, stop and surface the missing scope before proceeding.
+
+**Step C — Identify the target view.**
+From the planning artifact (or chat context), identify the single specific view being composed in this run. Each run composes one view. Do not attempt to compose all planned views in a single run.
+
+**Step D — Use the live file as visual evidence.**
+Inspect the current Figma file or project files for the actual state of patterns, components, variables, and existing screens. The planning artifact provides intent; the file provides implementation evidence. Never substitute one for the other.
+
+These four steps are not prompted — they are the skill's default entry behavior. A valid prompt needs only to identify the view and any run-specific decisions.
+
+## Prompt contract
+
+A valid compose-screen prompt needs only:
+
+- which planned view to compose (by name or reference)
+- any decisions resolved since the planning artifact was written (optional)
+- whether to apply the result to the file or return it as a summary (optional; defaults to returning the compact output)
+
+Examples of valid minimal prompts:
+
+- "Use figma-bmad-compose-screen for the Login view."
+- "Compose the Dashboard view. The empty state pattern is now confirmed."
+- "Compose V3 from the current planning artifact and apply changes if possible."
+
+Everything else — reading guidelines, reading the planning artifact, inspecting the file, reuse-first behavior, escalating blockers, returning the compact output — is default behavior and does not need to be stated in the prompt.
+
+## Safe degradation
+
+When upstream artifacts are missing or imperfect, the skill degrades explicitly rather than silently:
+
+| Condition | Default behavior |
+|---|---|
+| `Guidelines.md` missing | Proceed with session context; label the absence in output |
+| Planning artifact missing | Fall back to scoped chat context if present; label the fallback; stop if neither exists |
+| Planning artifact stale or contradictory | Surface the mismatch as an open point; stop if the mismatch is significant |
+| Planning artifact covers multiple views | Scope to the single identified view; do not compose all views in one run |
+| No scope identifiable from artifact or chat | Stop; surface missing scope as a pre-composition blocker |
 
 ## Relationship to upstream skills
 
@@ -167,19 +215,21 @@ Use this compact output shape so results stay consistent between runs:
 
 ## Core workflow
 
-1. Read project guidelines.
-   Check whether `Guidelines.md` exists in the project repo. If it does, read its active project rules, holds, and unresolved decisions before composing. These govern the current composition run. If it does not exist, use the system rule summary from the current session.
+### Startup phase (automatic — not prompted)
 
-2. Read the planning artifact.
-   Check whether `planning/<feature-slug>-screen-plan.md` exists for the current feature scope. If it does, read it and use the view definition, critical states, reuse opportunities, and pre-composition blockers from that file as the planning baseline for this composition run. If it does not exist, use planning context from chat. If neither exists, stop and surface the missing scope as a pre-composition blocker.
+Steps A through D run automatically at the start of every compose-screen run. See `Default startup sequence` above for the full detail. In brief:
 
-3. Confirm the scope and purpose.
-   Using the planning artifact or chat context, define the exact UI area to compose or update. Identify the specific view from the plan being composed in this run. Keep the scope bounded to one view at a time. Identify the main user action, journey step, or capability the screen must support.
+A. Read `Guidelines.md` if it exists.
+B. Read `planning/<feature-slug>-screen-plan.md` if it exists; fall back to chat context; stop if neither exists.
+C. Identify the single target view for this run.
+D. Inspect the live Figma file or project files as the visual and structural evidence source.
 
-4. Anchor composition to the upstream rules.
-   Use the current file according to `Guidelines.md` and the system rules from `figma-bmad-design-system-rules`. Do not start by inventing layout, components, or styles from scratch.
+### Composition phase (begins after startup)
 
-5. Inspect the scoped area and nearest existing patterns.
+1. Anchor composition to the upstream rules.
+   Apply the active project rules from `Guidelines.md` and the system rules from `figma-bmad-design-system-rules`. Do not start by inventing layout, components, or styles from scratch.
+
+2. Inspect the scoped area and nearest existing patterns.
    Review the target frames or nearby screens for:
    - recurring screen structures
    - existing sections or modules that already solve similar purposes
@@ -187,26 +237,26 @@ Use this compact output shape so results stay consistent between runs:
    - variables, styles, spacing, and layout behavior already present
    - existing state handling such as loading, empty, error, success, or disabled
 
-6. Build the screen structure before filling details.
+3. Build the screen structure before filling details.
    Use purpose and interaction flow from the planning artifact to define the main sections of the screen. Compose the hierarchy first: entry points, primary action area, supporting content, feedback zones, and any secondary controls.
 
-7. Choose components by role, not by superficial similarity.
+4. Choose components by role, not by superficial similarity.
    Reuse the component that matches the intended purpose and behavior, not just the one that looks close. Check the nearest pattern family first: buttons, forms, navigation, feedback, loading, empty states, and search/filtering where relevant.
 
-8. Reuse variables, spacing, and layout rules already present.
+5. Reuse variables, spacing, and layout rules already present.
    Keep semantic variables, styles, spacing rhythm, and inferred auto layout behavior aligned with the current file. Avoid local visual exceptions unless the scoped task truly requires one.
 
-9. Check state coverage before calling the screen complete.
+6. Check state coverage before calling the screen complete.
    Use the critical states listed in the planning artifact as the minimum required coverage. Do not leave a pattern visually complete if its key operational states are missing.
 
-10. Decide reuse vs extend vs escalate.
-    Reuse first. Extend existing components or patterns when coverage is incomplete. If the file lacks a valid system pattern, do not improvise a new parallel pattern silently. Mark the gap as an extension request or blocked system issue.
+7. Decide reuse vs extend vs escalate.
+   Reuse first. Extend existing components or patterns when coverage is incomplete. If the file lacks a valid system pattern, do not improvise a new parallel pattern silently. Mark the gap as an extension request or blocked system issue.
 
-11. Run basic responsive and accessibility checks when relevant.
-    Use `references/responsive-layout.md` and, where needed, the upstream accessibility guidance already established by `figma-bmad-design-system-rules` and documented in `Guidelines.md`. Check layout consistency across repeated structures, contrast-sensitive areas, no color-only state communication, touch target basics where touch is expected, and unresolved breakpoint logic if targets are unclear.
+8. Run basic responsive and accessibility checks when relevant.
+   Use `references/responsive-layout.md` and, where needed, the upstream accessibility guidance already established by `figma-bmad-design-system-rules` and documented in `Guidelines.md`. Check layout consistency across repeated structures, contrast-sensitive areas, no color-only state communication, touch target basics where touch is expected, and unresolved breakpoint logic if targets are unclear.
 
-12. Summarize the composition result.
-    Produce the final output using the compact structure from `Expected outputs`. Note the planning artifact and guidelines source used.
+9. Summarize the composition result.
+   Produce the final output using the compact structure from `Expected outputs`. Note the guidelines source and planning artifact used (or label any fallback or downgrade that occurred in the startup phase).
 
 ## Decision rules
 
@@ -278,10 +328,16 @@ Use this compact output shape so results stay consistent between runs:
 
 ## Final checklist
 
-- Planning artifact at `planning/<feature-slug>-screen-plan.md` was read, or its absence was noted and handled
-- `Guidelines.md` was read, or its absence was noted and handled
+### Startup checklist (automatic steps)
+
+- `Guidelines.md` was read, or its absence was labeled in the output
+- Planning artifact was read, or fallback source was labeled, or a missing-scope blocker was surfaced
+- Single target view for this run was identified
+- Live file or project files were inspected as the primary visual and structural evidence source
+
+### Composition checklist
+
 - Scope is bounded and explicit, derived from the planning artifact or scoped chat context
-- Specific view from the plan being composed in this run is identified
 - Primary user action or capability is clear
 - Upstream design-system rules were respected per guidelines and system audit
 - Screen structure was defined before detailed styling, guided by the planning artifact
@@ -292,4 +348,10 @@ Use this compact output shape so results stay consistent between runs:
 - Responsive behavior was checked at a basic composition level where relevant
 - No local workaround created a parallel system pattern
 - Extensions, blocked gaps, and open questions were called out explicitly
-- Planning artifact and guidelines source noted in the composition output
+
+### Output checklist
+
+- Compact composition summary returned using the structure from `Expected outputs`
+- Guidelines source labeled (file read / session fallback / absent)
+- Planning artifact source labeled (file read / chat fallback / absent with blocker surfaced)
+- Any startup degradation is noted in the output

@@ -6,11 +6,24 @@ Canonical reference: `docs/figma-bmad/compose-screen.md`
 
 Use this rule when composing or updating a bounded screen, section, or short flow from an existing Figma system.
 
-Before composing, always read:
+This rule is self-starting. The startup sequence runs automatically before the view request is processed. The prompt only needs to name the target view.
 
-1. `Guidelines.md` — project rule baseline
-2. `planning/<feature-slug>-screen-plan.md` — scope, intent, states, and reuse guidance for the current feature
-3. The Figma file — visual evidence source
+## Automatic startup sequence
+
+Run these steps at the start of every invocation:
+
+1. Read `Guidelines.md` if it exists. If absent, proceed with session context and label the absence.
+2. Read `planning/<feature-slug>-screen-plan.md` if it exists. If absent, use scoped chat context. If neither exists, stop and surface the missing scope. Label any fallback.
+3. Identify the single view being composed in this run.
+4. Inspect the live Figma file or project files as visual and structural evidence.
+
+## Prompt contract
+
+The prompt specifies only:
+
+- which planned view to compose
+- any decisions resolved since the last planning run (optional)
+- whether to apply or return the result (optional; defaults to returning compact output)
 
 ## Applies when
 
@@ -25,20 +38,20 @@ Before composing, always read:
 - the task is handoff readiness evaluation
 - no planning artifact and no scoped context are available
 
-## Workflow
+## Composition workflow (after startup)
 
-1. Read `Guidelines.md` if it exists.
-2. Read `planning/<feature-slug>-screen-plan.md` if it exists. If it does not, use scoped chat context. If neither exists, stop and surface the missing scope.
-3. Confirm the specific view from the plan being composed in this run.
-4. Inspect nearby patterns, components, variables, and states.
-5. Build structure before detail, guided by the planning artifact.
-6. Choose components by role, not superficial similarity.
-7. Reuse first, extend when needed, escalate system gaps.
-8. Return a compact composition summary with reused assets, extensions, and blockers. Note the planning artifact and guidelines source used.
+1. Apply rules from `Guidelines.md` and system audit. Do not redefine them.
+2. Inspect the scoped area and nearby patterns in the live file.
+3. Build structure before detail, guided by the planning artifact.
+4. Choose components by role, not superficial similarity.
+5. Reuse first, extend when needed, escalate system gaps.
+6. Check state coverage against the critical states in the planning artifact.
+7. Return the compact composition summary. Label guidelines source, planning artifact source, and any startup degradation.
 
 ## Escalation
 
-- If no planning artifact and no scoped context exist, stop. Flag the missing scope definition before composing.
-- If the planning artifact is stale or contradicts requirements, surface the mismatch rather than composing to a superseded plan.
-- Escalate canonical source conflicts, unresolved component gaps, and contradictory patterns upstream.
+- If no planning artifact and no scoped context exist, stop. Surface the missing scope.
+- If the planning artifact is stale or contradicts requirements, surface the mismatch; stop if significant.
+- Escalate canonical source conflicts, unresolved component gaps, and contradictory patterns to `figma-bmad-design-system-rules`.
 - Stop local composition when the missing answer depends on system clarification.
+- Defer to `figma-bmad-handoff-readiness` when the task shifts to a readiness gate.

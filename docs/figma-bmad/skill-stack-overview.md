@@ -131,12 +131,16 @@ Primary question:
 
 - How should this specific UI scope be composed using the existing system?
 
-Default behavior:
+Default behavior (self-starting — not prompted):
 
-- Reads `Guidelines.md` if it exists
-- Reads `planning/<feature-slug>-screen-plan.md` for the current feature scope before composing
+- Automatically reads `Guidelines.md` at startup if it exists
+- Automatically reads `planning/<feature-slug>-screen-plan.md` at startup if it exists
+- Automatically inspects the live Figma file or project files as visual evidence
 - Composes one specific view per run
 - Falls back to scoped chat context when no planning artifact exists; surfaces missing scope as a blocker if neither is available
+- Degrades explicitly: labels any missing artifact or fallback in the output rather than silently assuming
+
+Prompt contract: the prompt only needs to specify the target view name, any resolved decisions for this run, and optionally whether to apply or return the result.
 
 ### `figma-bmad-handoff-readiness`
 
